@@ -15,7 +15,5 @@ COPY ./services/apache /etc/apache2
 COPY ./apps /var/www
 
 RUN a2enmod rewrite &&\
-    a2dissite 000-default &&\
-    a2ensite rebeccamoser.local.conf &&\
-    service apache2 restart
+    a2dissite 000-default 
 

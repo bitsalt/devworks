@@ -1,0 +1,38 @@
+#!/usr/bin/env php
+<?php
+
+// Do we have anything to work with?
+if (empty($argv[1])) {
+    die("You must run this script with a single argument.\nIt must match the name of the new project in the apps/ directory.\n\n");
+}
+$siteName = $argv[1];
+
+// Have we already run this?
+if (file_exists("services/apache/sites-available/$siteName.local.conf")) {
+    die("This site already exists. If you believe this is a mistake, contact your development Supreme Overlord.\n\n");
+}
+
+// Don't add this to the devworks repository
+file_put_contents('.gitignore', "apps/$siteName");
+
+// write the Apache conf file for the new site
+$conf = '<VirtualHost *:80>
+    ServerName horsedb.local
+    DocumentRoot /var/www/'.$siteName.'/public
+
+    #Redirect "/" "https://'.$siteName.'.local"
+
+        <Directory "/var/www/'.$siteName.'/public">
+                    Options FollowSymLinks MultiViews
+                    AllowOverride All
+                    Order allow,deny
+                    Allow from all
+        </Directory>
+</VirtualHost>';
+
+$confFile = fopen("services/apache/sites-available/$siteName.local.conf", "w") or die("Unable to write conf file.\n\n");
+fwrite($confFile, $conf);
+
+// Add the site to the running container and restart the server
+exec("docker exec devworks_web_1 a2ensite $siteName");
+exec("docker exec devworks_web_1 service apache2 restart");
