@@ -1,51 +1,46 @@
 version: '3'
-
-#volumes:
-#  apps_volume:
-#  logs_volume:
-#  conf_volume:
-
 services:
-  web:
-    image: bitsalt/devworks:latest
-    volumes:
-      - ./apps:/var/www
-      - ./services/apache/sites-available:/etc/apache2/sites-available
+  nginx:
+    image: nginx:latest
+    container_name: nginx-container
     ports:
       - 80:80
       - 443:443
-    depends_on:
+    links:
       - php
-      - mariadb
+    volumes:
+    - ./app:/var/www/html
+    - ./services/nginx/conf.d:/etc/nginx/conf.d
+    networks:
+      - akaunting-net
 
   php:
-    image: php:7.4.21-fpm-alpine3.13
+    image: bitsalt/local-php
+    container_name: php-container
+    expose:
+      - 9000
+    links:
+      - mysql
     volumes:
-      - ./apps:/var/www
-    depends_on:
-      - mariadb
-    
+      - ./app:/var/www/html
+    networks:
+      - akaunting-net
 
-  mariadb:
-    image: mariadb:10.5
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-container
     volumes:
-      - ./services/mariadb/data:/var/lib/mysql
+      - ./services/mysql/data:/var/lib/mysql
     environment:
-      TZ: "America/New_York"
-      MYSQL_ALLOW_EMPTY_PASSWORD: "no"
-      MYSQL_ROOT_PASSWORD: "badRootPasswd"
-      #      MYSQL_DATABASE: "devsite"
-      #      MYSQL_USER: "devsite_usr"
-      #      MYSQL_PASSWORD: "devsite_passwd"
-    ports:
-      - 3306:3306
+      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_DATABASE: '${DB_DATABASE}'
+      MYSQL_USER: '${DB_USERNAME}'
+      MYSQL_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'no'
+    networks:
+      - akaunting-net
 
-  phpmyadmin:
-    image: phpmyadmin
-    restart: always
-    ports:
-      - 8080:80
-    environment:
-      - PMA_ARBITRARY=1
-    depends_on:
-      - mariadb
+networks:
+  akaunting-net:
+    driver: bridge
+
