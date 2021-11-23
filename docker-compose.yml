@@ -12,7 +12,7 @@ services:
     - ./app:/var/www/html
     - ./services/nginx/conf.d:/etc/nginx/conf.d
     networks:
-      - akaunting-net
+      - devworks-net
 
   php:
     image: bitsalt/local-php
@@ -24,7 +24,7 @@ services:
     volumes:
       - ./app:/var/www/html
     networks:
-      - akaunting-net
+      - devworks-net
 
   mysql:
     image: mysql:8.0
@@ -38,9 +38,9 @@ services:
       MYSQL_PASSWORD: '${DB_PASSWORD}'
       MYSQL_ALLOW_EMPTY_PASSWORD: 'no'
     networks:
-      - akaunting-net
+      - devworks-net
 
 networks:
-  akaunting-net:
+  devworks-net:
     driver: bridge
 
